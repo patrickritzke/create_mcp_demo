@@ -82,86 +82,32 @@ const server = new Server(
 
 const TOOLS = [
   {
-    name: 'search_matters',
-    description: 'Search for matters in Intapp by name or number',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        query: { type: 'string', description: 'Matter name or number to search for' },
-        limit: { type: 'number',  description: 'Max results to return (default 10)' }
-      },
-      required: ['query']
-    }
-  },
-  {
-    name: 'get_matter',
-    description: 'Get full details for a specific matter',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        matter_id: { type: 'string', description: 'The matter ID' }
-      },
-      required: ['matter_id']
-    }
-  },
-  {
-    name: 'search_clients',
-    description: 'Search for clients in Intapp',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        query: { type: 'string', description: 'Client name to search for' },
-        limit: { type: 'number',  description: 'Max results to return (default 10)' }
-      },
-      required: ['query']
-    }
-  },
-  {
-    name: 'list_time_entries',
-    description: 'List time entries for a given matter',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        matter_id: { type: 'string', description: 'Matter ID' },
-        limit:     { type: 'number', description: 'Max results (default 20)' }
-      },
-      required: ['matter_id']
-    }
+    name: 'ping',
+    description: 'Test that the MCP server can authenticate with Intapp. Call this first to confirm everything is wired up.',
+    inputSchema: { type: 'object', properties: {} }
   }
 ];
 
 server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  const { name, arguments: args } = request.params;
+  const { name } = request.params;
+
+  if (name !== 'ping') {
+    return { content: [{ type: 'text', text: `Unknown tool: ${name}` }], isError: true };
+  }
 
   try {
-    let data;
-    switch (name) {
-      case 'search_matters':
-        data = await api('GET', '/api/v1/matters', { search: args.query, limit: args.limit ?? 10 });
-        break;
-      case 'get_matter':
-        data = await api('GET', `/api/v1/matters/${args.matter_id}`);
-        break;
-      case 'search_clients':
-        data = await api('GET', '/api/v1/clients', { search: args.query, limit: args.limit ?? 10 });
-        break;
-      case 'list_time_entries':
-        data = await api('GET', '/api/v1/time/entries', { matterId: args.matter_id, limit: args.limit ?? 20 });
-        break;
-      default:
-        throw new Error(`Unknown tool: ${name}`);
-    }
-
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
-
-  } catch (err) {
-    const message = err.response?.data
-      ? JSON.stringify(err.response.data)
-      : err.message;
+    const token = await getAccessToken();
     return {
-      content: [{ type: 'text', text: `Error: ${message}` }],
+      content: [{
+        type: 'text',
+        text: `Connected to ${HOST}\nAuthenticated successfully. Ready to add tools.`
+      }]
+    };
+  } catch (err) {
+    return {
+      content: [{ type: 'text', text: `Auth failed: ${err.message}` }],
       isError: true
     };
   }
