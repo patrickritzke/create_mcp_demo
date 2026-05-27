@@ -259,7 +259,7 @@ After creating all files, commit and push them to the repo so the user can clone
 
 Tell the user to open **PowerShell** (Windows) or **Terminal** (Mac). Give them these commands using their local install path.
 
-### Clone the repo
+### Clone and install
 
 **Windows:**
 ```powershell
@@ -277,9 +277,19 @@ cd my_custom_intapp_mcp
 npm install
 ```
 
+### Run the prereq check
+
+After `npm install`, tell them to run:
+
+```
+node scripts/check.js
+```
+
+This checks Node.js version, Git, dependencies, and Claude Desktop — and fixes any ✗ items before continuing. Tell them to share the output if anything fails.
+
 ### Authenticate (run once)
 
-Tell the user to paste their Client Secret where indicated.
+Tell the user to paste their Client Secret where indicated. Keep the same terminal window open so the env vars carry through to the auth script.
 
 **Windows:**
 ```powershell
@@ -307,6 +317,16 @@ Explain what happens:
 
 Tell them to confirm they see **"Saved to tokens.json"** before continuing.
 
+### Run the check again to get the config block
+
+In the same terminal window (env vars still set), run:
+
+```
+node scripts/check.js
+```
+
+This time it prints a ready-to-paste Claude Desktop config block with the correct node path and file path for their machine — with their HOST, CLIENT_ID, and REDIRECT_URI already filled in. They only need to add their Client Secret.
+
 ---
 
 ## Step 4 — Claude Desktop config
@@ -325,43 +345,14 @@ code "$env:APPDATA\Claude\claude_desktop_config.json"
 code "$HOME/Library/Application Support/Claude/claude_desktop_config.json"
 ```
 
-### Config block to paste
+### Paste the config block
 
-Give them this block to add inside `"mcpServers": { ... }`, with their values filled in. Tell them to replace `PASTE_YOUR_SECRET_HERE` with their Client Secret before saving.
+The config block was printed by `node scripts/check.js` at the end of Step 3. Tell them to:
 
-**Windows** (double backslashes in paths):
-```json
-"intappCeleste": {
-  "command": "C:\\Program Files\\nodejs\\node.exe",
-  "args": [
-    "THEIR_INSTALL_PATH\\my_custom_intapp_mcp\\src\\index.js"
-  ],
-  "env": {
-    "INTAPP_APP_HOST": "THEIR_HOST",
-    "INTAPP_CLIENT_ID": "THEIR_CLIENT_ID",
-    "INTAPP_CLIENT_SECRET": "PASTE_YOUR_SECRET_HERE",
-    "INTAPP_REDIRECT_URI": "THEIR_REDIRECT_URI"
-  }
-}
-```
-
-**Mac** (use the path from `which node` collected in Step 1):
-```json
-"intappCeleste": {
-  "command": "THEIR_NODE_PATH",
-  "args": [
-    "THEIR_INSTALL_PATH/my_custom_intapp_mcp/src/index.js"
-  ],
-  "env": {
-    "INTAPP_APP_HOST": "THEIR_HOST",
-    "INTAPP_CLIENT_ID": "THEIR_CLIENT_ID",
-    "INTAPP_CLIENT_SECRET": "PASTE_YOUR_SECRET_HERE",
-    "INTAPP_REDIRECT_URI": "THEIR_REDIRECT_URI"
-  }
-}
-```
-
-Tell them to: fill in their secret → save → reopen Claude Desktop.
+1. Paste it inside `"mcpServers": { ... }`
+2. Replace `YOUR_CLIENT_SECRET` with their actual Client Secret
+3. Save the file
+4. Reopen Claude Desktop
 
 ---
 

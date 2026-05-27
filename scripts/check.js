@@ -80,10 +80,10 @@ const snippet = {
     command: nodeBin,
     args: [indexPath],
     env: {
-      INTAPP_APP_HOST:      'shalaka2-sand.opensandbox2.intapp.com',
-      INTAPP_CLIENT_ID:     'YOUR_CLIENT_ID',
+      INTAPP_APP_HOST:      process.env.INTAPP_APP_HOST      || 'YOUR_APP_HOST',
+      INTAPP_CLIENT_ID:     process.env.INTAPP_CLIENT_ID     || 'YOUR_CLIENT_ID',
       INTAPP_CLIENT_SECRET: 'YOUR_CLIENT_SECRET',
-      INTAPP_REDIRECT_URI:  'https://shalaka2-sand.opensandbox2.intapp.com:443'
+      INTAPP_REDIRECT_URI:  process.env.INTAPP_REDIRECT_URI  || 'YOUR_REDIRECT_URI'
     }
   }
 };
