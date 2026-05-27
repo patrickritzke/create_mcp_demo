@@ -9,7 +9,8 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TOKENS_PATH = path.join(__dirname, '..', 'tokens.json');
 
-const HOST          = process.env.INTAPP_APP_HOST;
+const _host         = process.env.INTAPP_APP_HOST ?? '';
+const HOST          = _host.startsWith('http') ? _host : `https://${_host}`;
 const CLIENT_ID     = process.env.INTAPP_CLIENT_ID;
 const CLIENT_SECRET = process.env.INTAPP_CLIENT_SECRET;
 
