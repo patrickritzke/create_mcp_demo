@@ -83,33 +83,46 @@ const server = new Server(
 const TOOLS = [
   {
     name: 'ping',
-    description: 'Test that the MCP server can authenticate with Intapp. Call this first to confirm everything is wired up.',
+    description: 'Test that the MCP server can reach and authenticate with Intapp. Call this first.',
     inputSchema: { type: 'object', properties: {} }
+  },
+  {
+    name: 'list_intake_requests',
+    description: 'Get intake requests from Intapp',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        limit: { type: 'number', description: 'Max number of results to return' }
+      }
+    }
   }
 ];
 
 server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  const { name } = request.params;
-
-  if (name !== 'ping') {
-    return { content: [{ type: 'text', text: `Unknown tool: ${name}` }], isError: true };
-  }
+  const { name, arguments: args } = request.params;
 
   try {
-    const token = await getAccessToken();
-    return {
-      content: [{
-        type: 'text',
-        text: `Connected to ${HOST}\nAuthenticated successfully. Ready to add tools.`
-      }]
-    };
+    let result;
+    switch (name) {
+      case 'ping': {
+        await getAccessToken();
+        result = `Connected to ${HOST}\nAuthenticated successfully. Ready to use.`;
+        break;
+      }
+      case 'list_intake_requests': {
+        const data = await api('GET', '/api/intake/v1/requests', args?.limit ? { limit: args.limit } : {});
+        result = JSON.stringify(data, null, 2);
+        break;
+      }
+      default:
+        throw new Error(`Unknown tool: ${name}`);
+    }
+    return { content: [{ type: 'text', text: result }] };
   } catch (err) {
-    return {
-      content: [{ type: 'text', text: `Auth failed: ${err.message}` }],
-      isError: true
-    };
+    const message = err.response?.data ? JSON.stringify(err.response.data) : err.message;
+    return { content: [{ type: 'text', text: `Error: ${message}` }], isError: true };
   }
 });
 
